@@ -1,0 +1,49 @@
+name: CD - Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]  # Деплой ТОЛЬКО когда есть push в main
+  workflow_run:
+    workflows: ["CI - Run UI Tests"]
+    branches: [ main ]
+    types:
+      - completed
+
+# Разрешения для деплоя
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Отменяем предыдущие деплои если есть новые
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Деплой только если тесты прошли успешно
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        # Публикуем весь корень репозитория
+        path: '.'
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
