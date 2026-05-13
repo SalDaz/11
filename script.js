@@ -1,4 +1,4 @@
-document.getElementById('registration-form').addEventListener('submit', function(e) {
+document.getElementById('registration-form-wrong').addEventListener('submit', function(e) {
     e.preventDefault();
     
     // Получаем значения полей
