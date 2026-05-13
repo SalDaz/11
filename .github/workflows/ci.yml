@@ -1,0 +1,43 @@
+name: CI - Run UI Tests
+
+on:
+  push:
+    branches: [ main, dev, 'fix/**' ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Install Chrome and Chromedriver
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-chromedriver
+        
+    - name: Run Selenium tests
+      run: |
+        export CI=true
+        python -m pytest tests/ -v --html=reports/test-report.html --self-contained-html
+        
+    - name: Upload test report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-report
+        path: reports/test-report.html
+        retention-days: 7
